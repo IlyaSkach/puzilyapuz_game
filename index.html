@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Восстание Пузиляпуса</title>
+	<script src="https://telegram.org/js/telegram-web-app.js"></script>
+	<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+	<div id="intro" class="intro">
+		<h1>Восстание Пузиляпуса:<br>Манетки Судьбы</h1>
+		<div class="story">
+			<p>Далеко-далеко, в желудочной галактике Пузикус-12, жил-был <span class="highlight">ПУЗИЛЯПУС</span> — пухлопузый
+				обитатель планеты Манетан. Он родился после великого Гастрономического Взрыва, когда гигантская баночка тушёнки
+				столкнулась с чёрной дыркой.</p>
+			<p>Пузиляпус с детства мечтал стать королём манеток, но был изгнан из родного желудочного племени за то, что
+				однажды случайно превратил их святую пиццу в омлет. С тех пор он скитается по вселенной, бесцельно появляясь в
+				неожиданных местах... прямо на экране вашего телефона.</p>
+			<p>И каждый раз, когда вы <span class="highlight">ТАПАЕТЕ</span> по нему — он пугается, пердит манетками и
+				исчезает. Это не просто манетки — это фрагменты его утраченного достоинства. Соберите их все, и, возможно,
+				вернёте Пузиляпусу его титул, его уважение... и его огромные золотые трусы, символ власти в его клане.</p>
+		</div>
+		<button id="startGame" class="start-button">Начать игру</button>
+	</div>
+	<div class="game-container" style="display: none;">
+		<div class="score">Монеты: <span id="coins">0</span></div>
+		<button id="stopStory" class="stop-button">Выключить историю</button>
+		<div id="target" class="target"></div>
+		<div id="coinLoss" class="coin-loss"></div>
+	</div>
+	<script src="app.js"></script>
+</body>
+
+</html>
