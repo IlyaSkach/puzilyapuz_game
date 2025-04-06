@@ -83,23 +83,44 @@ function initTelegramWebApp() {
   loadUserScore();
 }
 
-// Загрузка очков пользователя
-function loadUserScore() {
+// Функция для загрузки счета пользователя
+async function loadUserScore() {
   const user = tg.initDataUnsafe?.user;
   if (user) {
-    const savedScore = localStorage.getItem(`score_${user.id}`);
-    if (savedScore) {
-      coins = parseInt(savedScore);
-      updateScore();
+    try {
+      const response = await fetch(`${API_URL}/api/leaderboard`);
+      const leaderboard = await response.json();
+      const userScore = leaderboard.find(
+        (entry) => entry.username === user.username
+      );
+      if (userScore) {
+        coins = userScore.score;
+        updateScore();
+      }
+    } catch (error) {
+      console.error("Ошибка при загрузке счета:", error);
     }
   }
 }
 
-// Сохранение очков пользователя
-function saveUserScore() {
+// Функция для сохранения счета пользователя
+async function saveUserScore() {
   const user = tg.initDataUnsafe?.user;
   if (user) {
-    localStorage.setItem(`score_${user.id}`, coins.toString());
+    try {
+      await fetch(`${API_URL}/api/scores`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: user.username || "Аноним",
+          score: coins,
+        }),
+      });
+    } catch (error) {
+      console.error("Ошибка при сохранении счета:", error);
+    }
   }
 }
 
@@ -303,49 +324,6 @@ function updateScore() {
   saveUserScore();
 }
 
-// Функция для сохранения счета
-async function saveScore(username, score) {
-  try {
-    // Отправляем данные на сервер
-    const response = await fetch(`${API_URL}/api/scores`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, score }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      console.log("Счет успешно сохранен на сервере");
-      // Обновляем локальную таблицу лидеров
-      localStorage.setItem("leaderboard", JSON.stringify(data.leaderboard));
-    } else {
-      console.error("Ошибка при сохранении счета на сервере");
-    }
-  } catch (error) {
-    console.error("Ошибка при сохранении счета:", error);
-    // В случае ошибки сохраняем локально
-    const leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-    const userIndex = leaderboard.findIndex(
-      (entry) => entry.username === username
-    );
-
-    if (userIndex !== -1) {
-      if (score > leaderboard[userIndex].score) {
-        leaderboard[userIndex].score = score;
-      }
-    } else {
-      leaderboard.push({ username, score });
-    }
-
-    leaderboard.sort((a, b) => b.score - a.score);
-    const top10 = leaderboard.slice(0, 10);
-    localStorage.setItem("leaderboard", JSON.stringify(top10));
-  }
-}
-
 // Функция для отображения таблицы лидеров
 async function showLeaderboard() {
   const leaderboardModal = document.getElementById("leaderboardModal");
@@ -393,41 +371,7 @@ async function showLeaderboard() {
     leaderboardModal.style.display = "flex";
   } catch (error) {
     console.error("Ошибка при получении таблицы лидеров:", error);
-    // В случае ошибки показываем локальные данные
-    const localLeaderboard = JSON.parse(
-      localStorage.getItem("leaderboard") || "[]"
-    );
-    leaderboardList.innerHTML = "";
-
-    if (localLeaderboard.length === 0) {
-      leaderboardList.innerHTML =
-        "<p class='no-scores'>Пока нет результатов</p>";
-    } else {
-      localLeaderboard.forEach((entry, index) => {
-        const listItem = document.createElement("div");
-        listItem.className = "leaderboard-item";
-
-        const rank = document.createElement("span");
-        rank.className = "rank";
-        rank.textContent = `#${index + 1}`;
-
-        const username = document.createElement("span");
-        username.className = "username";
-        username.textContent = entry.username;
-
-        const score = document.createElement("span");
-        score.className = "score";
-        score.textContent = entry.score;
-
-        listItem.appendChild(rank);
-        listItem.appendChild(username);
-        listItem.appendChild(score);
-
-        leaderboardList.appendChild(listItem);
-      });
-    }
-
-    leaderboardModal.style.display = "flex";
+    leaderboardModal.innerHTML = "<p>Ошибка при загрузке таблицы лидеров</p>";
   }
 }
 
@@ -439,62 +383,55 @@ function hideLeaderboard() {
 // Обработчики событий для таблицы лидеров
 document.addEventListener("DOMContentLoaded", () => {
   // Кнопки для показа таблицы лидеров
-  const showLeaderboardBtns = document.querySelectorAll(
-    ".show-leaderboard-btn"
-  );
+  const showLeaderboardBtns = document.querySelectorAll(".leaderboard-button");
   showLeaderboardBtns.forEach((btn) => {
-    btn.addEventListener("click", showLeaderboard);
+    btn.addEventListener("click", () => {
+      showLeaderboard();
+    });
   });
 
   // Кнопка закрытия модального окна
   const closeModalBtn = document.querySelector(".close-modal");
-  closeModalBtn.addEventListener("click", () => {
-    document.getElementById("leaderboardModal").style.display = "none";
-  });
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener("click", hideLeaderboard);
+  }
 
   // Закрытие модального окна при клике вне его
   window.addEventListener("click", (event) => {
     const modal = document.getElementById("leaderboardModal");
     if (event.target === modal) {
-      modal.style.display = "none";
+      hideLeaderboard();
     }
   });
 });
 
-// Функция для закрытия игры
-function closeGame() {
-  // Сохраняем текущий счет
-  const username = tg.initDataUnsafe?.user?.username || "Аноним";
-  saveScore(username, coins);
-
-  // Останавливаем игру
+// Функция окончания игры
+function endGame() {
   isGameRunning = false;
   clearTimeout(targetTimer);
-  target.style.display = "none";
 
-  // Останавливаем аудио
-  if (storyAudio) {
-    storyAudio.pause();
-    storyAudio.currentTime = 0;
-  }
+  const username = tg.initDataUnsafe?.user?.username || "Аноним";
 
-  // Закрываем игру через Telegram WebApp
-  if (tg) {
-    tg.close();
-  } else {
-    // Если не в Telegram, возвращаемся на главный экран
-    document.getElementById("intro").style.display = "block";
-    document.getElementById("gameContainer").style.display = "none";
-  }
+  // Сохраняем счет
+  saveUserScore();
+
+  // Показываем экран окончания игры
+  const gameOverScreen = document.getElementById("gameOverScreen");
+  const finalScore = document.getElementById("finalScore");
+  finalScore.textContent = coins;
+
+  // Скрываем игровой контейнер
+  gameContainer.style.display = "none";
+  gameOverScreen.style.display = "flex";
 }
 
 // Обработчик кнопки "Продолжить позже"
-document.getElementById("continueLater").addEventListener("click", closeGame);
+document.getElementById("continueLater").addEventListener("click", endGame);
 
 // Обработчик кнопки "Продолжить позже" на экране окончания игры
 document
   .getElementById("continueLaterFromGameOver")
-  .addEventListener("click", closeGame);
+  .addEventListener("click", endGame);
 
 // Обновляем функцию startGame
 function startGame() {
