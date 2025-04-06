@@ -356,13 +356,23 @@ async function showLeaderboard() {
       return;
     }
 
-    leaderboard.forEach((entry) => {
+    // Ограничиваем список до 50 лидеров
+    const topLeaders = leaderboard.slice(0, 50);
+
+    topLeaders.forEach((entry, index) => {
       const item = document.createElement("div");
       item.className = "leaderboard-item";
-      item.innerHTML = `
-        <div class="username">${entry.username || "Аноним"}</div>
-        <div class="score">${entry.score}</div>
-      `;
+
+      const username = document.createElement("div");
+      username.className = "username";
+      username.textContent = `${index + 1}. ${entry.username || "Аноним"}`;
+
+      const score = document.createElement("div");
+      score.className = "score";
+      score.textContent = entry.score;
+
+      item.appendChild(username);
+      item.appendChild(score);
       leaderboardList.appendChild(item);
     });
   } catch (error) {
