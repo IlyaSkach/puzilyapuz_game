@@ -255,3 +255,136 @@ body::before {
     transform: translateY(-50px);
   }
 }
+
+/* Стили для кнопки таблицы лидеров */
+.leaderboard-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  z-index: 1000;
+  transition: background-color 0.3s;
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+}
+
+.leaderboard-button:hover {
+  background-color: #45a049;
+}
+
+/* Стили для кнопки "Продолжить позже" */
+.continue-later-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.continue-later-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* Стили для таблицы лидеров */
+.leaderboard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.leaderboard-item .rank {
+  font-weight: bold;
+  color: #ffd700;
+  width: 40px;
+}
+
+.leaderboard-item .username {
+  flex-grow: 1;
+  margin: 0 15px;
+  text-align: left;
+}
+
+.leaderboard-item .score {
+  font-weight: bold;
+  color: #00ff00;
+  width: 60px;
+  text-align: right;
+}
+
+.no-scores {
+  text-align: center;
+  color: #fff;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Стили для модального окна */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #2c3e50;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 80%;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal-title {
+  color: #fff;
+  font-size: 1.5em;
+  margin: 0;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5em;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.close-modal:hover {
+  color: #ff4444;
+}

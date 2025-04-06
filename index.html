@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>Восстание Пузиляпуса</title>
 	<script src="https://telegram.org/js/telegram-web-app.js"></script>
 	<link rel="stylesheet" href="styles.css">
@@ -24,13 +24,36 @@
 				вернёте Пузиляпусу его титул, его уважение... и его огромные золотые трусы, символ власти в его клане.</p>
 		</div>
 		<button id="startGame" class="start-button">Начать игру</button>
+		<button id="showLeaderboardBtn" class="leaderboard-button">Таблица лидеров</button>
 	</div>
-	<div class="game-container" style="display: none;">
+	<div id="gameContainer" class="game-container" style="display: none;">
 		<div class="score">Монеты: <span id="coins">0</span></div>
 		<button id="stopStory" class="stop-button">Выключить историю</button>
+		<button id="showLeaderboardBtnGame" class="leaderboard-button">Таблица лидеров</button>
+		<button id="continueLater" class="continue-later-btn">Продолжить позже</button>
 		<div id="target" class="target"></div>
 		<div id="coinLoss" class="coin-loss"></div>
 	</div>
+
+	<div id="gameOver" style="display: none;">
+		<h2>Игра окончена!</h2>
+		<p>Ваш счет: <span id="finalScore">0</span></p>
+		<p>Рекорд: <span id="highScore">0</span></p>
+		<button id="restartGame">Играть снова</button>
+		<button id="continueLaterFromGameOver" class="continue-later-btn">Продолжить позже</button>
+	</div>
+
+	<!-- Модальное окно для таблицы лидеров -->
+	<div id="leaderboardModal" class="modal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2 class="modal-title">Таблица лидеров</h2>
+				<button class="close-modal">&times;</button>
+			</div>
+			<div id="leaderboardList"></div>
+		</div>
+	</div>
+
 	<script src="app.js"></script>
 </body>
 

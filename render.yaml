@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: tggame
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: MONGODB_URI
+        value: mongodb+srv://puzilapus:puzilapus@cluster0.jnspptr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+    staticPublishPath: ./

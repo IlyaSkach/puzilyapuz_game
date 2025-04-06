@@ -46,6 +46,63 @@ const MAX_COIN_LOSS = 10; // Максимальный процент потер�
 
 let gameStarted = false;
 
+// Базовый URL для API
+const API_URL = window.location.origin;
+
+// Инициализация Telegram WebApp
+function initTelegramWebApp() {
+  // Расширяем на весь экран
+  tg.expand();
+
+  // Устанавливаем цвет фона и текста
+  tg.setHeaderColor("#1a1a2e");
+  tg.setBackgroundColor("#1a1a2e");
+
+  // Включаем кнопку "Назад"
+  tg.enableClosingConfirmation();
+
+  // Получаем данные пользователя
+  const user = tg.initDataUnsafe?.user;
+  if (user) {
+    console.log("Пользователь авторизован:", user.username);
+    // Сохраняем данные пользователя
+    localStorage.setItem(
+      "telegram_user",
+      JSON.stringify({
+        id: user.id,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+      })
+    );
+  } else {
+    console.log("Пользователь не авторизован");
+  }
+
+  // Загружаем сохраненные очки пользователя
+  loadUserScore();
+}
+
+// Загрузка очков пользователя
+function loadUserScore() {
+  const user = tg.initDataUnsafe?.user;
+  if (user) {
+    const savedScore = localStorage.getItem(`score_${user.id}`);
+    if (savedScore) {
+      coins = parseInt(savedScore);
+      updateScore();
+    }
+  }
+}
+
+// Сохранение очков пользователя
+function saveUserScore() {
+  const user = tg.initDataUnsafe?.user;
+  if (user) {
+    localStorage.setItem(`score_${user.id}`, coins.toString());
+  }
+}
+
 // Функция для расчета текущего времени показа/скрытия
 function getCurrentTimes() {
   const displayTimeReduction = (difficultyLevel - 1) * 0.2; // 20% уменьшение на каждый уровень
@@ -86,59 +143,55 @@ function checkDifficultyDecrease() {
   }
 }
 
-// Функция для показа Пузиляпуса
+// Функция для показа цели
 function showTarget() {
-  if (!targetVisible) {
-    // Определяем, будет ли это бомба
-    isBomb = Math.random() < BOMB_CHANCE;
-    console.log("Появляется:", isBomb ? "бомба" : "цель"); // Для отладки
+  // Определяем, будет ли это бомба
+  isBomb = Math.random() < BOMB_CHANCE;
 
-    const position = randomPosition();
-    target.style.left = position.x + "px";
-    target.style.top = position.y + "px";
+  // Случайное положение цели
+  const position = randomPosition();
+  target.style.left = position.x + "px";
+  target.style.top = position.y + "px";
 
-    if (isBomb) {
-      target.style.backgroundColor = "transparent";
-      target.style.backgroundImage = 'url("images/bomb.png")';
-      target.style.backgroundSize = "contain";
-    } else {
-      target.style.backgroundColor = "transparent";
-      target.style.backgroundImage = 'url("images/target.png")';
-      target.style.backgroundSize = "contain";
-    }
-
-    target.style.display = "block";
-    targetVisible = true;
-
-    const times = getCurrentTimes();
-    // Случайное время показа
-    let displayTime;
-
-    if (isBomb) {
-      // Для бомбы увеличиваем время отображения в 2 раза
-      displayTime =
-        (Math.random() * (times.maxDisplay - times.minDisplay) +
-          times.minDisplay) *
-        2;
-    } else {
-      displayTime =
-        Math.random() * (times.maxDisplay - times.minDisplay) +
-        times.minDisplay;
-    }
-
-    targetTimer = setTimeout(hideTarget, displayTime);
+  // Устанавливаем изображение цели
+  if (isBomb) {
+    target.style.backgroundImage = "url('images/bomb.png')";
+  } else {
+    target.style.backgroundImage = "url('images/target.png')";
   }
+
+  // Показываем цель
+  target.style.display = "block";
+
+  // Определяем время показа цели
+  const times = getCurrentTimes();
+  let displayTime;
+
+  if (isBomb) {
+    // Для бомбы увеличиваем время отображения в 2 раза
+    displayTime =
+      Math.random() * (times.maxDisplay - times.minDisplay) + times.minDisplay;
+    displayTime *= 2; // Увеличиваем время отображения бомбы
+  } else {
+    displayTime =
+      Math.random() * (times.maxDisplay - times.minDisplay) + times.minDisplay;
+  }
+
+  // Устанавливаем таймер для скрытия цели
+  targetTimer = setTimeout(hideTarget, displayTime);
 }
 
-// Функция для скрытия Пузиляпуса
+// Функция для скрытия цели
 function hideTarget() {
+  // Скрываем цель
   target.style.display = "none";
-  targetVisible = false;
 
+  // Определяем время скрытия цели
   const times = getCurrentTimes();
-  // Случайное время скрытия
   const hideTime =
     Math.random() * (times.maxHide - times.minHide) + times.minHide;
+
+  // Устанавливаем таймер для показа новой цели
   targetTimer = setTimeout(showTarget, hideTime);
 }
 
@@ -151,43 +204,7 @@ stopStoryButton.addEventListener("click", () => {
 
 // Обработчик кнопки старта
 startButton.addEventListener("click", () => {
-  // Скрываем заставку и кнопку
-  intro.style.display = "none";
-  startButton.style.display = "none";
-
-  // Показываем игровое поле
-  gameContainer.style.display = "block";
-
-  // Скрываем Пузиляпуса изначально
-  target.style.display = "none";
-
-  // Запускаем игру
-  gameStarted = true;
-
-  // Запускаем цикл появления/исчезновения
-  setTimeout(showTarget, 1000);
-
-  // Запускаем таймер сложности
-  gameStartTime = Date.now();
-  lastHitTime = gameStartTime;
-
-  // Таймер увеличения сложности
-  setInterval(() => {
-    const currentTime = Date.now();
-    const elapsedTime = currentTime - gameStartTime;
-    const newLevel = Math.floor(elapsedTime / DIFFICULTY_INCREASE_INTERVAL) + 1;
-
-    if (newLevel > difficultyLevel && newLevel <= MAX_DIFFICULTY) {
-      difficultyLevel = newLevel;
-      console.log(`Уровень сложности увеличен до ${difficultyLevel}`);
-    }
-  }, 1000);
-
-  // Таймер проверки уменьшения сложности
-  setInterval(checkDifficultyDecrease, DIFFICULTY_DECREASE_INTERVAL);
-
-  // Начинаем воспроизведение истории
-  storyAudio.play().catch((e) => console.log("Ошибка воспроизведения истории"));
+  startGame();
 });
 
 // Случайное положение цели
@@ -214,44 +231,42 @@ function createCoin(x, y) {
   }, 1000);
 }
 
-// Обработчик клика
+// Обработчик клика по цели
 target.addEventListener("click", () => {
-  if (targetVisible) {
-    // Останавливаем текущий таймер
-    clearTimeout(targetTimer);
+  // Останавливаем текущий таймер
+  clearTimeout(targetTimer);
 
-    // Обновляем время последнего попадания
-    lastHitTime = Date.now();
+  // Обновляем время последнего попадания
+  lastHitTime = Date.now();
 
-    if (isBomb) {
-      // Если это бомба
-      playSound("pop2");
-      const coinLoss =
-        Math.floor(Math.random() * (MAX_COIN_LOSS - MIN_COIN_LOSS + 1)) +
-        MIN_COIN_LOSS;
-      const lossAmount = Math.max(1, Math.floor(coins * (coinLoss / 100))); // Минимум 1 монета
-      coins = Math.max(0, coins - lossAmount);
-      updateScore();
-      showCoinLoss(lossAmount);
-    } else {
-      // Если это обычная цель
-      playSound("pop");
-      const coinsCount = Math.floor(Math.random() * 5) + 1;
-      coins += coinsCount;
-      updateScore();
+  if (isBomb) {
+    // Если это бомба
+    playSound("pop2");
+    const coinLoss =
+      Math.floor(Math.random() * (MAX_COIN_LOSS - MIN_COIN_LOSS + 1)) +
+      MIN_COIN_LOSS;
+    const lossAmount = Math.max(1, Math.floor(coins * (coinLoss / 100))); // Минимум 1 монета
+    coins = Math.max(0, coins - lossAmount);
+    updateScore();
+    showCoinLoss(lossAmount);
+  } else {
+    // Если это обычная цель
+    playSound("pop");
+    const coinsCount = Math.floor(Math.random() * 5) + 1;
+    coins += coinsCount;
+    updateScore();
 
-      // Создаем монетки в текущей позиции
-      const rect = target.getBoundingClientRect();
-      for (let i = 0; i < coinsCount; i++) {
-        setTimeout(() => {
-          createCoin(rect.left + 50, rect.top + 50);
-        }, i * 100);
-      }
+    // Создаем монетки в текущей позиции
+    const rect = target.getBoundingClientRect();
+    for (let i = 0; i < coinsCount; i++) {
+      setTimeout(() => {
+        createCoin(rect.left + 50, rect.top + 50);
+      }, i * 100);
     }
-
-    // Скрываем Пузиляпуса и запускаем новый цикл
-    hideTarget();
   }
+
+  // Скрываем цель и запускаем новый цикл
+  hideTarget();
 });
 
 function showCoinLoss(amount) {
@@ -284,4 +299,246 @@ function playSound(soundName) {
 
 function updateScore() {
   coinsDisplay.textContent = coins;
+  // Сохраняем очки при каждом обновлении
+  saveUserScore();
 }
+
+// Функция для сохранения счета
+async function saveScore(username, score) {
+  try {
+    // Отправляем данные на сервер
+    const response = await fetch(`${API_URL}/api/scores`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, score }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log("Счет успешно сохранен на сервере");
+      // Обновляем локальную таблицу лидеров
+      localStorage.setItem("leaderboard", JSON.stringify(data.leaderboard));
+    } else {
+      console.error("Ошибка при сохранении счета на сервере");
+    }
+  } catch (error) {
+    console.error("Ошибка при сохранении счета:", error);
+    // В случае ошибки сохраняем локально
+    const leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    const userIndex = leaderboard.findIndex(
+      (entry) => entry.username === username
+    );
+
+    if (userIndex !== -1) {
+      if (score > leaderboard[userIndex].score) {
+        leaderboard[userIndex].score = score;
+      }
+    } else {
+      leaderboard.push({ username, score });
+    }
+
+    leaderboard.sort((a, b) => b.score - a.score);
+    const top10 = leaderboard.slice(0, 10);
+    localStorage.setItem("leaderboard", JSON.stringify(top10));
+  }
+}
+
+// Функция для отображения таблицы лидеров
+async function showLeaderboard() {
+  const leaderboardModal = document.getElementById("leaderboardModal");
+  const leaderboardList = document.getElementById("leaderboardList");
+
+  try {
+    // Получаем данные с сервера
+    const response = await fetch(`${API_URL}/api/leaderboard`);
+    const leaderboard = await response.json();
+
+    // Очищаем текущий список
+    leaderboardList.innerHTML = "";
+
+    // Если таблица пуста
+    if (leaderboard.length === 0) {
+      leaderboardList.innerHTML =
+        "<p class='no-scores'>Пока нет результатов</p>";
+    } else {
+      // Добавляем каждую запись в таблицу
+      leaderboard.forEach((entry, index) => {
+        const listItem = document.createElement("div");
+        listItem.className = "leaderboard-item";
+
+        const rank = document.createElement("span");
+        rank.className = "rank";
+        rank.textContent = `#${index + 1}`;
+
+        const username = document.createElement("span");
+        username.className = "username";
+        username.textContent = entry.username;
+
+        const score = document.createElement("span");
+        score.className = "score";
+        score.textContent = entry.score;
+
+        listItem.appendChild(rank);
+        listItem.appendChild(username);
+        listItem.appendChild(score);
+
+        leaderboardList.appendChild(listItem);
+      });
+    }
+
+    // Показываем модальное окно
+    leaderboardModal.style.display = "flex";
+  } catch (error) {
+    console.error("Ошибка при получении таблицы лидеров:", error);
+    // В случае ошибки показываем локальные данные
+    const localLeaderboard = JSON.parse(
+      localStorage.getItem("leaderboard") || "[]"
+    );
+    leaderboardList.innerHTML = "";
+
+    if (localLeaderboard.length === 0) {
+      leaderboardList.innerHTML =
+        "<p class='no-scores'>Пока нет результатов</p>";
+    } else {
+      localLeaderboard.forEach((entry, index) => {
+        const listItem = document.createElement("div");
+        listItem.className = "leaderboard-item";
+
+        const rank = document.createElement("span");
+        rank.className = "rank";
+        rank.textContent = `#${index + 1}`;
+
+        const username = document.createElement("span");
+        username.className = "username";
+        username.textContent = entry.username;
+
+        const score = document.createElement("span");
+        score.className = "score";
+        score.textContent = entry.score;
+
+        listItem.appendChild(rank);
+        listItem.appendChild(username);
+        listItem.appendChild(score);
+
+        leaderboardList.appendChild(listItem);
+      });
+    }
+
+    leaderboardModal.style.display = "flex";
+  }
+}
+
+function hideLeaderboard() {
+  const modal = document.getElementById("leaderboardModal");
+  modal.style.display = "none";
+}
+
+// Обработчики событий для таблицы лидеров
+document.addEventListener("DOMContentLoaded", () => {
+  // Кнопки для показа таблицы лидеров
+  const showLeaderboardBtns = document.querySelectorAll(
+    ".show-leaderboard-btn"
+  );
+  showLeaderboardBtns.forEach((btn) => {
+    btn.addEventListener("click", showLeaderboard);
+  });
+
+  // Кнопка закрытия модального окна
+  const closeModalBtn = document.querySelector(".close-modal");
+  closeModalBtn.addEventListener("click", () => {
+    document.getElementById("leaderboardModal").style.display = "none";
+  });
+
+  // Закрытие модального окна при клике вне его
+  window.addEventListener("click", (event) => {
+    const modal = document.getElementById("leaderboardModal");
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+});
+
+// Функция для закрытия игры
+function closeGame() {
+  // Сохраняем текущий счет
+  const username = tg.initDataUnsafe?.user?.username || "Аноним";
+  saveScore(username, coins);
+
+  // Останавливаем игру
+  isGameRunning = false;
+  clearTimeout(targetTimer);
+  target.style.display = "none";
+
+  // Останавливаем аудио
+  if (storyAudio) {
+    storyAudio.pause();
+    storyAudio.currentTime = 0;
+  }
+
+  // Закрываем игру через Telegram WebApp
+  if (tg) {
+    tg.close();
+  } else {
+    // Если не в Telegram, возвращаемся на главный экран
+    document.getElementById("intro").style.display = "block";
+    document.getElementById("gameContainer").style.display = "none";
+  }
+}
+
+// Обработчик кнопки "Продолжить позже"
+document.getElementById("continueLater").addEventListener("click", closeGame);
+
+// Обработчик кнопки "Продолжить позже" на экране окончания игры
+document
+  .getElementById("continueLaterFromGameOver")
+  .addEventListener("click", closeGame);
+
+// Обновляем функцию startGame
+function startGame() {
+  // Скрываем заставку
+  intro.style.display = "none";
+
+  // Показываем игровой контейнер
+  document.getElementById("gameContainer").style.display = "block";
+
+  // Загружаем сохраненные очки пользователя
+  loadUserScore();
+
+  // Запускаем игру
+  isGameRunning = true;
+  showTarget();
+
+  // Запускаем историю
+  storyAudio
+    .play()
+    .catch((e) => console.log("Ошибка воспроизведения истории:", e));
+}
+
+// Загружаем сохраненные данные при старте
+document.addEventListener("DOMContentLoaded", () => {
+  // Загружаем сохраненный счет
+  const savedScore = localStorage.getItem("gameScore");
+  if (savedScore) {
+    coins = parseInt(savedScore);
+    updateScore();
+  }
+
+  // Загружаем данные пользователя
+  const user = tg.initDataUnsafe?.user;
+  if (user) {
+    console.log("Пользователь авторизован:", user.username);
+    // Сохраняем данные пользователя
+    localStorage.setItem(
+      "telegram_user",
+      JSON.stringify({
+        id: user.id,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+      })
+    );
+  }
+});
