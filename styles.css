@@ -214,24 +214,27 @@ body::before {
   position: fixed;
   top: 20px;
   right: 20px;
-  background-color: #ff4444;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(76, 175, 80, 0.8);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 20px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
   z-index: 1000;
-  transition: background-color 0.3s;
-  font-family: "Courier New", monospace;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+  padding: 0;
 }
 
 .stop-button:hover {
-  background-color: #ff0000;
+  background-color: rgba(76, 175, 80, 1);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
 }
 
 .coin-loss {
@@ -308,29 +311,32 @@ body::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  margin: 5px 0;
-  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  margin: 8px 0;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: #fff;
+  transition: transform 0.2s ease;
 }
 
-.leaderboard-item .rank {
-  font-weight: bold;
-  color: #ffd700;
-  width: 40px;
+.leaderboard-item:hover {
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .leaderboard-item .username {
   flex-grow: 1;
-  margin: 0 15px;
   text-align: left;
+  padding-left: 10px;
+  color: #fff;
+  font-size: 1.1em;
 }
 
 .leaderboard-item .score {
+  color: #ffd700;
   font-weight: bold;
-  color: #00ff00;
-  width: 60px;
+  padding-right: 10px;
+  font-size: 1.1em;
+  min-width: 80px;
   text-align: right;
 }
 
@@ -401,46 +407,4 @@ body::before {
 
 #leaderboardList {
   padding: 10px 0;
-}
-
-.leaderboard-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  margin: 5px 0;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  transition: transform 0.2s ease;
-}
-
-.leaderboard-item:hover {
-  transform: scale(1.02);
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.rank {
-  color: #ffd700;
-  font-weight: bold;
-  min-width: 40px;
-}
-
-.username {
-  flex-grow: 1;
-  margin: 0 10px;
-  color: #fff;
-}
-
-.score {
-  color: #ffd700;
-  font-weight: bold;
-  min-width: 60px;
-  text-align: right;
-}
-
-.no-scores {
-  text-align: center;
-  color: #fff;
-  padding: 20px;
-  font-style: italic;
 }

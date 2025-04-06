@@ -49,6 +49,8 @@ let gameStarted = false;
 // Базовый URL для API
 const API_URL = window.location.origin;
 
+let isSoundOn = true;
+
 // Инициализация Telegram WebApp
 function initTelegramWebApp() {
   // Расширяем на весь экран
@@ -216,11 +218,23 @@ function hideTarget() {
   targetTimer = setTimeout(showTarget, hideTime);
 }
 
-// Обработчик кнопки выключения истории
+// Обработчик кнопки выключения звука
 stopStoryButton.addEventListener("click", () => {
-  storyAudio.pause();
-  storyAudio.currentTime = 0;
-  stopStoryButton.style.display = "none";
+  isSoundOn = !isSoundOn;
+  if (!isSoundOn) {
+    storyAudio.pause();
+    storyAudio.currentTime = 0;
+    popSound.volume = 0;
+    pop2Sound.volume = 0;
+    stopStoryButton.textContent = "🔈";
+  } else {
+    storyAudio
+      .play()
+      .catch((e) => console.log("Ошибка воспроизведения звука:", e));
+    popSound.volume = 0.7;
+    pop2Sound.volume = 0.7;
+    stopStoryButton.textContent = "🔊";
+  }
 });
 
 // Обработчик кнопки старта
@@ -326,52 +340,35 @@ function updateScore() {
 
 // Функция для отображения таблицы лидеров
 async function showLeaderboard() {
-  const leaderboardModal = document.getElementById("leaderboardModal");
+  const modal = document.getElementById("leaderboardModal");
   const leaderboardList = document.getElementById("leaderboardList");
+  modal.style.display = "flex";
 
   try {
-    // Получаем данные с сервера
     const response = await fetch(`${API_URL}/api/leaderboard`);
     const leaderboard = await response.json();
 
-    // Очищаем текущий список
     leaderboardList.innerHTML = "";
 
-    // Если таблица пуста
     if (leaderboard.length === 0) {
       leaderboardList.innerHTML =
-        "<p class='no-scores'>Пока нет результатов</p>";
-    } else {
-      // Добавляем каждую запись в таблицу
-      leaderboard.forEach((entry, index) => {
-        const listItem = document.createElement("div");
-        listItem.className = "leaderboard-item";
-
-        const rank = document.createElement("span");
-        rank.className = "rank";
-        rank.textContent = `#${index + 1}`;
-
-        const username = document.createElement("span");
-        username.className = "username";
-        username.textContent = entry.username;
-
-        const score = document.createElement("span");
-        score.className = "score";
-        score.textContent = entry.score;
-
-        listItem.appendChild(rank);
-        listItem.appendChild(username);
-        listItem.appendChild(score);
-
-        leaderboardList.appendChild(listItem);
-      });
+        '<div class="no-scores">Пока нет рекордов</div>';
+      return;
     }
 
-    // Показываем модальное окно
-    leaderboardModal.style.display = "flex";
+    leaderboard.forEach((entry) => {
+      const item = document.createElement("div");
+      item.className = "leaderboard-item";
+      item.innerHTML = `
+        <div class="username">${entry.username || "Аноним"}</div>
+        <div class="score">${entry.score}</div>
+      `;
+      leaderboardList.appendChild(item);
+    });
   } catch (error) {
-    console.error("Ошибка при получении таблицы лидеров:", error);
-    leaderboardModal.innerHTML = "<p>Ошибка при загрузке таблицы лидеров</p>";
+    console.error("Ошибка при загрузке таблицы лидеров:", error);
+    leaderboardList.innerHTML =
+      '<div class="no-scores">Ошибка загрузки данных</div>';
   }
 }
 
@@ -448,10 +445,12 @@ function startGame() {
   isGameRunning = true;
   showTarget();
 
-  // Запускаем историю
-  storyAudio
-    .play()
-    .catch((e) => console.log("Ошибка воспроизведения истории:", e));
+  // Запускаем историю только если звук включен
+  if (isSoundOn) {
+    storyAudio
+      .play()
+      .catch((e) => console.log("Ошибка воспроизведения истории:", e));
+  }
 }
 
 // Загружаем сохраненные данные при старте
