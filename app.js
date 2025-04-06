@@ -112,8 +112,20 @@ function showTarget() {
 
     const times = getCurrentTimes();
     // Случайное время показа
-    const displayTime =
-      Math.random() * (times.maxDisplay - times.minDisplay) + times.minDisplay;
+    let displayTime;
+
+    if (isBomb) {
+      // Для бомбы увеличиваем время отображения в 2 раза
+      displayTime =
+        (Math.random() * (times.maxDisplay - times.minDisplay) +
+          times.minDisplay) *
+        2;
+    } else {
+      displayTime =
+        Math.random() * (times.maxDisplay - times.minDisplay) +
+        times.minDisplay;
+    }
+
     targetTimer = setTimeout(hideTarget, displayTime);
   }
 }
