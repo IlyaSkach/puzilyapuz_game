@@ -412,8 +412,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Кнопки для показа таблицы лидеров
   const showLeaderboardBtns = document.querySelectorAll(".leaderboard-button");
   showLeaderboardBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      showLeaderboard();
+    btn.addEventListener("click", async () => {
+      try {
+        const user = tg.initDataUnsafe?.user;
+        const response = await fetch(
+          `${API_URL}/api/leaderboard?username=${user?.username || ""}`
+        );
+        const data = await response.json();
+        showLeaderboard(data.top10, data.userRank);
+      } catch (error) {
+        console.error("Ошибка при загрузке таблицы лидеров:", error);
+      }
     });
   });
 
