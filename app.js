@@ -401,8 +401,10 @@ async function showLeaderboard(top10, userRank) {
 }
 
 function hideLeaderboard() {
-  const modal = document.getElementById("leaderboardModal");
-  modal.style.display = "none";
+  const leaderboardContainer = document.querySelector(".leaderboard-container");
+  if (leaderboardContainer) {
+    leaderboardContainer.remove();
+  }
 }
 
 // Обработчики событий для таблицы лидеров
