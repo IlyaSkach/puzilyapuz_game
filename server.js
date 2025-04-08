@@ -20,8 +20,28 @@ connectDB();
 // Маршрут для получения таблицы лидеров
 app.get("/api/leaderboard", async (req, res) => {
   try {
-    const leaderboard = await Leaderboard.find().sort({ score: -1 }).limit(10);
-    res.json(leaderboard);
+    const username = req.query.username;
+    const leaderboard = await Leaderboard.find().sort({ score: -1 });
+
+    // Получаем топ-10
+    const top10 = leaderboard.slice(0, 10);
+
+    // Если указано имя пользователя, находим его место
+    let userRank = null;
+    if (username) {
+      const userIndex = leaderboard.findIndex(
+        (player) => player.username === username
+      );
+      if (userIndex !== -1) {
+        userRank = {
+          rank: userIndex + 1,
+          username: username,
+          score: leaderboard[userIndex].score,
+        };
+      }
+    }
+
+    res.json({ top10, userRank });
   } catch (error) {
     console.error("Ошибка при получении таблицы лидеров:", error);
     res.status(500).json({ error: "Ошибка сервера" });
@@ -52,9 +72,20 @@ app.post("/api/scores", async (req, res) => {
     }
 
     // Получаем обновленную таблицу лидеров
-    const leaderboard = await Leaderboard.find().sort({ score: -1 }).limit(10);
+    const leaderboard = await Leaderboard.find().sort({ score: -1 });
+    const top10 = leaderboard.slice(0, 10);
 
-    res.json({ success: true, leaderboard });
+    // Находим место пользователя
+    const userIndex = leaderboard.findIndex(
+      (player) => player.username === username
+    );
+    const userRank = {
+      rank: userIndex + 1,
+      username: username,
+      score: leaderboard[userIndex].score,
+    };
+
+    res.json({ success: true, top10, userRank });
   } catch (error) {
     console.error("Ошибка при сохранении счета:", error);
     res.status(500).json({ error: "Ошибка сервера" });

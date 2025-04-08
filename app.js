@@ -90,13 +90,12 @@ async function loadUserScore() {
   const user = tg.initDataUnsafe?.user;
   if (user) {
     try {
-      const response = await fetch(`${API_URL}/api/leaderboard`);
-      const leaderboard = await response.json();
-      const userScore = leaderboard.find(
-        (entry) => entry.username === user.username
+      const response = await fetch(
+        `${API_URL}/api/leaderboard?username=${user.username}`
       );
-      if (userScore) {
-        coins = userScore.score;
+      const data = await response.json();
+      if (data.userRank) {
+        coins = data.userRank.score;
         updateScore();
       }
     } catch (error) {
@@ -110,7 +109,7 @@ async function saveUserScore() {
   const user = tg.initDataUnsafe?.user;
   if (user) {
     try {
-      await fetch(`${API_URL}/api/scores`, {
+      const response = await fetch(`${API_URL}/api/scores`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -120,6 +119,10 @@ async function saveUserScore() {
           score: coins,
         }),
       });
+      const data = await response.json();
+      if (data.success) {
+        showLeaderboard(data.top10, data.userRank);
+      }
     } catch (error) {
       console.error("Ошибка при сохранении счета:", error);
     }
@@ -339,47 +342,62 @@ function updateScore() {
 }
 
 // Функция для отображения таблицы лидеров
-async function showLeaderboard() {
-  const modal = document.getElementById("leaderboardModal");
-  const leaderboardList = document.getElementById("leaderboardList");
-  modal.style.display = "flex";
+async function showLeaderboard(top10, userRank) {
+  const leaderboardContainer = document.createElement("div");
+  leaderboardContainer.className = "leaderboard-container";
 
-  try {
-    const response = await fetch(`${API_URL}/api/leaderboard`);
-    const leaderboard = await response.json();
+  const leaderboardContent = document.createElement("div");
+  leaderboardContent.className = "leaderboard-content";
 
-    leaderboardList.innerHTML = "";
+  const title = document.createElement("h2");
+  title.textContent = "Таблица лидеров";
+  leaderboardContent.appendChild(title);
 
-    if (leaderboard.length === 0) {
-      leaderboardList.innerHTML =
-        '<div class="no-scores">Пока нет рекордов</div>';
-      return;
-    }
+  const table = document.createElement("table");
+  table.innerHTML = `
+    <tr>
+      <th>Место</th>
+      <th>Игрок</th>
+      <th>Счет</th>
+    </tr>
+  `;
 
-    // Ограничиваем список до 50 лидеров
-    const topLeaders = leaderboard.slice(0, 50);
+  // Добавляем топ-10
+  top10.forEach((player, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${player.username}</td>
+      <td>${player.score}</td>
+    `;
+    table.appendChild(row);
+  });
 
-    topLeaders.forEach((entry, index) => {
-      const item = document.createElement("div");
-      item.className = "leaderboard-item";
+  // Если пользователь не в топ-10, добавляем его место
+  if (userRank && userRank.rank > 10) {
+    const separator = document.createElement("tr");
+    separator.innerHTML = "<td colspan='3'>...</td>";
+    table.appendChild(separator);
 
-      const username = document.createElement("div");
-      username.className = "username";
-      username.textContent = `${index + 1}. ${entry.username || "Аноним"}`;
-
-      const score = document.createElement("div");
-      score.className = "score";
-      score.textContent = entry.score;
-
-      item.appendChild(username);
-      item.appendChild(score);
-      leaderboardList.appendChild(item);
-    });
-  } catch (error) {
-    console.error("Ошибка при загрузке таблицы лидеров:", error);
-    leaderboardList.innerHTML =
-      '<div class="no-scores">Ошибка загрузки данных</div>';
+    const userRow = document.createElement("tr");
+    userRow.className = "user-rank";
+    userRow.innerHTML = `
+      <td>${userRank.rank}</td>
+      <td>${userRank.username}</td>
+      <td>${userRank.score}</td>
+    `;
+    table.appendChild(userRow);
   }
+
+  leaderboardContent.appendChild(table);
+
+  const closeButton = document.createElement("button");
+  closeButton.textContent = "Закрыть";
+  closeButton.onclick = hideLeaderboard;
+  leaderboardContent.appendChild(closeButton);
+
+  leaderboardContainer.appendChild(leaderboardContent);
+  document.body.appendChild(leaderboardContainer);
 }
 
 function hideLeaderboard() {

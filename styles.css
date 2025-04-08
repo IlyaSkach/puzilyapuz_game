@@ -419,3 +419,73 @@ body::before {
   overflow-y: auto;
   max-height: calc(80vh - 100px);
 }
+
+.leaderboard-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.leaderboard-content {
+  background-color: #1a1a2e;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 90%;
+  width: 400px;
+  color: white;
+}
+
+.leaderboard-content h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #ffd700;
+}
+
+.leaderboard-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.leaderboard-content th,
+.leaderboard-content td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+.leaderboard-content th {
+  background-color: #2a2a3e;
+  color: #ffd700;
+}
+
+.leaderboard-content tr:last-child td {
+  border-bottom: none;
+}
+
+.leaderboard-content .user-rank {
+  background-color: rgba(255, 215, 0, 0.1);
+  font-weight: bold;
+}
+
+.leaderboard-content button {
+  width: 100%;
+  padding: 10px;
+  background-color: #ffd700;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.leaderboard-content button:hover {
+  background-color: #ffed4a;
+}
