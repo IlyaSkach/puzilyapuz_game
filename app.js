@@ -121,7 +121,7 @@ async function saveUserScore() {
       });
       const data = await response.json();
       if (data.success) {
-        showLeaderboard(data.top10, data.userRank);
+        console.log("Счет успешно сохранен");
       }
     } catch (error) {
       console.error("Ошибка при сохранении счета:", error);
