@@ -41,8 +41,8 @@ const BASE_MAX_HIDE_TIME = 3000;
 
 let isBomb = false;
 const BOMB_CHANCE = 0.2; // 20% шанс появления бомбы
-const MIN_COIN_LOSS = 5; // Минимальный процент потери монет
-const MAX_COIN_LOSS = 10; // Максимальный процент потери монет
+const MIN_COIN_LOSS = 1; // Минимальный процент потери монет
+const MAX_COIN_LOSS = 2; // Максимальный процент потери монет
 
 let gameStarted = false;
 
